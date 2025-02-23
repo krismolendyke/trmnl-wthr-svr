@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"log/slog"
+	"time"
 
 	"github.com/alecthomas/kong"
 	"github.com/lrosenman/ambient"
@@ -20,6 +22,7 @@ type CLI struct {
 type ServeCmd struct {
 	ApplicationKey string `required:"true" help:"API 'application' key" env:"TRMNL_WTHR_SVR_APP_KEY"`
 	APIKey         string `required:"true" help:"API key" env:"TRMNL_WTHR_SVR_API_KEY"`
+	Device         string `required:"true" help"Device MAC address"`
 }
 
 func (c *ServeCmd) Run(ctx *kong.Context) error {
@@ -37,6 +40,22 @@ func (c *ServeCmd) Run(ctx *kong.Context) error {
 			slog.String("MAC", d.Macaddress),
 			slog.String("name", d.Info.Name),
 		)
+	}
+
+	now := time.Now().UTC()
+	results, err := ambient.DeviceMac(key, c.Device, now, 100)
+	if err != nil {
+		slog.Error("could not get device data", slog.String("err", err.Error()))
+	}
+	slog.Debug("results", slog.Any("records", results))
+	var jsonResponse map[string]any
+	if err := json.Unmarshal(results.JSONResponse, &jsonResponse); err != nil {
+		slog.Error("could not unmarshal JSON response", slog.String("err", err.Error()))
+	}
+	slog.Debug("json response", slog.Any("json", jsonResponse))
+
+	for _, r := range results.Record {
+		slog.Info("record", slog.Time("time", r.Date), slog.Float64("temp", r.Tempf))
 	}
 
 	return nil
