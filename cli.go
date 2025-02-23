@@ -1,10 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"log/slog"
-	"time"
-
 	"github.com/alecthomas/kong"
 	"github.com/lrosenman/ambient"
 )
@@ -26,37 +22,5 @@ type ServeCmd struct {
 }
 
 func (c *ServeCmd) Run(ctx *kong.Context) error {
-	key := ambient.NewKey(c.ApplicationKey, c.APIKey)
-	devices, err := ambient.Device(key)
-	if err != nil {
-		slog.Error("could not list devices", slog.String("err", err.Error()))
-	}
-	slog.Debug("Run", slog.Any("devices", devices))
-
-	slog.Debug("devices", slog.Int("count", len(devices.DeviceRecord)))
-	for _, d := range devices.DeviceRecord {
-		slog.Debug(
-			"device",
-			slog.String("MAC", d.Macaddress),
-			slog.String("name", d.Info.Name),
-		)
-	}
-
-	now := time.Now().UTC()
-	results, err := ambient.DeviceMac(key, c.Device, now, 100)
-	if err != nil {
-		slog.Error("could not get device data", slog.String("err", err.Error()))
-	}
-	slog.Debug("results", slog.Any("records", results))
-	var jsonResponse map[string]any
-	if err := json.Unmarshal(results.JSONResponse, &jsonResponse); err != nil {
-		slog.Error("could not unmarshal JSON response", slog.String("err", err.Error()))
-	}
-	slog.Debug("json response", slog.Any("json", jsonResponse))
-
-	for _, r := range results.Record {
-		slog.Info("record", slog.Time("time", r.Date), slog.Float64("temp", r.Tempf))
-	}
-
-	return nil
+	return Update(ambient.NewKey(c.ApplicationKey, c.APIKey), c.Device)
 }
