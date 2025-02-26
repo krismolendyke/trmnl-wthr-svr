@@ -18,7 +18,7 @@ type CLI struct {
 type ServeCmd struct {
 	ApplicationKey string `required:"true" help:"API 'application' key" env:"TRMNL_WTHR_SVR_APP_KEY"`
 	APIKey         string `required:"true" help:"API key" env:"TRMNL_WTHR_SVR_API_KEY"`
-	Device         string `required:"true" help"Device MAC address"`
+	Device         string `required:"true" help:"Device MAC address"`
 }
 
 func (c *ServeCmd) Run(ctx *kong.Context) error {
