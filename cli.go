@@ -19,8 +19,9 @@ type ServeCmd struct {
 	ApplicationKey string `required:"true" help:"API 'application' key" env:"TRMNL_WTHR_SVR_APP_KEY"`
 	APIKey         string `required:"true" help:"API key" env:"TRMNL_WTHR_SVR_API_KEY"`
 	Device         string `required:"true" help:"Device MAC address"`
+	ResultsLimit   int64  `required:"false" default:"10" help:"Maximum number of results to return"`
 }
 
 func (c *ServeCmd) Run(ctx *kong.Context) error {
-	return Update(ambient.NewKey(c.ApplicationKey, c.APIKey), c.Device)
+	return Update(ambient.NewKey(c.ApplicationKey, c.APIKey), c.Device, c.ResultsLimit)
 }
