@@ -13,16 +13,19 @@ import (
 	"github.com/lrosenman/ambient"
 )
 
+// MergeVariables contains the Ambient Weather API data used for templating in the TRMNL plugin.
 type MergeVariables struct {
 	Latest     map[string]any   `json:"latest"`
 	Historical []map[string]any `json:"historical"`
 }
 
+// WebhookData wraps up the Ambient Weather API response in the webhook data format expected by TRMNL.
 type WebhookData struct {
 	MergeVariables MergeVariables `json:"merge_variables"`
 }
 
-func Latest(key ambient.Key) (map[string]any, error) {
+// Latest requests the most recent data from the Ambient Weather API for the given device MAC address.
+func Latest(key ambient.Key, mac string) (map[string]any, error) {
 	results, err := ambient.Device(key)
 	if err != nil {
 		slog.Error("could not get latest devices data", slog.String("err", err.Error()))
@@ -32,9 +35,21 @@ func Latest(key ambient.Key) (map[string]any, error) {
 		return nil, fmt.Errorf("unexpected response code: %d, json: %s", results.HTTPResponseCode, results.JSONResponse)
 	}
 	slog.Debug("latest", slog.Any("records", results))
-	return results.DeviceRecord[0].LastDataFields, nil
+	if len(results.DeviceRecord) == 0 {
+		return nil, fmt.Errorf("received zero device records")
+	}
+	for _, r := range results.DeviceRecord {
+		if mac == r.Macaddress {
+			return r.LastDataFields, nil
+		}
+	}
+	return nil, fmt.Errorf("no device data found for device MAC: %s", mac)
 }
 
+// Historical requests past data from the Ambient Weather API for a single device.
+// The Ambient Weather API docs state that each record will be in 5 or 30 minute granularity and that the maximum amount
+// of records to request is 288 (and defaults to that value).
+// https://ambientweather.docs.apiary.io/#reference/0/device-data/query-device-data
 func Historical(key ambient.Key, mac string, limit int64) ([]map[string]any, error) {
 	now := time.Now().UTC()
 	results, err := ambient.DeviceMac(key, mac, now, limit)
@@ -49,10 +64,11 @@ func Historical(key ambient.Key, mac string, limit int64) ([]map[string]any, err
 	return results.RecordFields, nil
 }
 
-func Update(key ambient.Key, mac string, limit int64, webhook *url.URL) error {
-	latest, err := Latest(key)
+// Data assembles latest and historical data into something that can be sent to the TRMNL webhook URL.
+func Data(key ambient.Key, mac string, limit int64) (*WebhookData, error) {
+	latest, err := Latest(key, mac)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// HACK work around ridiculous immediate 429 response for making >1 request in a second
@@ -63,14 +79,21 @@ func Update(key ambient.Key, mac string, limit int64, webhook *url.URL) error {
 
 	historical, err := Historical(key, mac, limit)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	data := WebhookData{
+	return &WebhookData{
 		MergeVariables: MergeVariables{
 			Latest:     latest,
 			Historical: historical,
 		},
+	}, nil
+}
+
+func Update(key ambient.Key, mac string, limit int64, webhook *url.URL) error {
+	data, err := Data(key, mac, limit)
+	if err != nil {
+		return err
 	}
 	slog.Debug("sending data to TRMNL", slog.String("webhook", webhook.String()), slog.Any("data", data))
 
