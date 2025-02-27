@@ -27,6 +27,8 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	err := ctx.Run(&cli.Globals)
-	ctx.FatalIfErrorf(err)
+	if err := ctx.Run(&cli.Globals); err != nil {
+		slog.Error("error", slog.String("err", err.Error()))
+		os.Exit(1)
+	}
 }
