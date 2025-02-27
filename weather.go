@@ -10,9 +10,13 @@ import (
 	"github.com/lrosenman/ambient"
 )
 
-type TrmnlWebhookData struct {
-	MergeVariables struct {
-	} `json:"merge_variables"`
+type MergeVariables struct {
+	Latest     []ambient.DeviceRecord `json:"latest"`
+	Historical []ambient.Record       `json:"historical"`
+}
+
+type WebhookData struct {
+	MergeVariables MergeVariables `json:"merge_variables"`
 }
 
 func Latest(key ambient.Key) ([]ambient.DeviceRecord, error) {
@@ -65,9 +69,13 @@ func Update(key ambient.Key, mac string, limit int64, webhook *url.URL) error {
 		slog.Info("historical records", slog.Time("date", r.Date), slog.Float64("temp", r.Tempf))
 	}
 
-	// TODO assemble data to send to webhook
-
-	slog.Debug("sending data to TRMNL", slog.String("webhook", webhook.String()))
+	data := WebhookData{
+		MergeVariables: MergeVariables{
+			Latest:     latest,
+			Historical: historical,
+		},
+	}
+	slog.Debug("sending data to TRMNL", slog.String("webhook", webhook.String()), slog.Any("data", data))
 
 	return nil
 }
