@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -77,5 +80,25 @@ func Update(key ambient.Key, mac string, limit int64, webhook *url.URL) error {
 	}
 	slog.Debug("sending data to TRMNL", slog.String("webhook", webhook.String()), slog.Any("data", data))
 
+	// Convert the data to JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("error marshaling webhook data: %w", err)
+	}
+
+	// Send the HTTP POST request
+	resp, err := http.Post(webhook.String(), "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("error sending webhook request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response status
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("webhook request failed with status %d: %s", resp.StatusCode, string(body))
+	}
+
+	slog.Info("webhook request sent successfully", slog.Int("status", resp.StatusCode))
 	return nil
 }
