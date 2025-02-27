@@ -8,5 +8,6 @@ Run locally with the 1Password CLI, `op`:
 go run . --debug serve \
     --application-key $(op read "op://Private/AmbientWeather/TRMNL Secrets/Application Key") \
     --api-key $(op read "op://Private/AmbientWeather/TRMNL Secrets/API Key") \
-    --device $(op read "op://Private/AmbientWeather/Station MAC")
+    --device $(op read "op://Private/AmbientWeather/Station MAC") \
+    --trmnl-webhook-url $(op read "op://Private/AmbientWeather/TRMNL Secrets/Webhook URL")
 ```
