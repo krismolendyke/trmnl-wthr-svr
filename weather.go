@@ -14,15 +14,15 @@ import (
 )
 
 type MergeVariables struct {
-	Latest     []ambient.DeviceRecord `json:"latest"`
-	Historical []ambient.Record       `json:"historical"`
+	Latest     map[string]any   `json:"latest"`
+	Historical []map[string]any `json:"historical"`
 }
 
 type WebhookData struct {
 	MergeVariables MergeVariables `json:"merge_variables"`
 }
 
-func Latest(key ambient.Key) ([]ambient.DeviceRecord, error) {
+func Latest(key ambient.Key) (map[string]any, error) {
 	results, err := ambient.Device(key)
 	if err != nil {
 		slog.Error("could not get latest devices data", slog.String("err", err.Error()))
@@ -32,10 +32,10 @@ func Latest(key ambient.Key) ([]ambient.DeviceRecord, error) {
 		return nil, fmt.Errorf("unexpected response code: %d, json: %s", results.HTTPResponseCode, results.JSONResponse)
 	}
 	slog.Debug("latest", slog.Any("records", results))
-	return results.DeviceRecord, nil
+	return results.DeviceRecord[0].LastDataFields, nil
 }
 
-func Historical(key ambient.Key, mac string, limit int64) ([]ambient.Record, error) {
+func Historical(key ambient.Key, mac string, limit int64) ([]map[string]any, error) {
 	now := time.Now().UTC()
 	results, err := ambient.DeviceMac(key, mac, now, limit)
 	if err != nil {
@@ -46,16 +46,13 @@ func Historical(key ambient.Key, mac string, limit int64) ([]ambient.Record, err
 		return nil, fmt.Errorf("unexpected response code: %d, json: %s", results.HTTPResponseCode, results.JSONResponse)
 	}
 	slog.Debug("historical", slog.Any("records", results))
-	return results.Record, nil
+	return results.RecordFields, nil
 }
 
 func Update(key ambient.Key, mac string, limit int64, webhook *url.URL) error {
 	latest, err := Latest(key)
 	if err != nil {
 		return err
-	}
-	for _, r := range latest {
-		slog.Info("latest records", slog.Time("date", r.LastData.Date), slog.Float64("temp", r.LastData.Tempf))
 	}
 
 	// HACK work around ridiculous immediate 429 response for making >1 request in a second
@@ -67,9 +64,6 @@ func Update(key ambient.Key, mac string, limit int64, webhook *url.URL) error {
 	historical, err := Historical(key, mac, limit)
 	if err != nil {
 		return err
-	}
-	for _, r := range historical {
-		slog.Info("historical records", slog.Time("date", r.Date), slog.Float64("temp", r.Tempf))
 	}
 
 	data := WebhookData{
