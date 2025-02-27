@@ -13,7 +13,9 @@ func main() {
 		kong.Name("trmnl-wthr-svr"),
 		kong.Description("Ambient Weather webhook server for TRMNL displays"),
 		kong.UsageOnError(),
-		kong.ConfigureHelp(kong.HelpOptions{Compact: true}))
+		kong.ConfigureHelp(kong.HelpOptions{Compact: true}),
+		kong.DefaultEnvars("TRMNL_WTHR_SVR"),
+	)
 
 	logLevel := slog.LevelInfo
 	if cli.Debug {
