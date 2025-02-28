@@ -21,7 +21,7 @@ type ServeCmd struct {
 	ApplicationKey string   `required:"true" help:"Ambient Weather API 'application' key"`
 	APIKey         string   `required:"true" help:"Ambient Weather API key"`
 	Device         string   `required:"true" help:"Ambient Weather Device MAC address"`
-	ResultsLimit   int64    `required:"false" default:"10" help:"Ambient Weather maximum number of historical results to return"`
+	ResultsLimit   int64    `required:"false" default:"288" help:"Ambient Weather maximum number of historical results to return"`
 	WebhookUrl     *url.URL `required:"true" help:"TRMNL private plugin webhook URL"`
 }
 
