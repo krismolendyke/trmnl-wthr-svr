@@ -26,6 +26,7 @@ type WebhookData struct {
 
 // Latest requests the most recent data from the Ambient Weather API for the given device MAC address.
 func Latest(key ambient.Key, mac string) (map[string]any, error) {
+	slog.Info("getting latest weather data", slog.String("mac", mac))
 	results, err := ambient.Device(key)
 	if err != nil {
 		slog.Error("could not get latest devices data", slog.String("err", err.Error()))
@@ -51,6 +52,7 @@ func Latest(key ambient.Key, mac string) (map[string]any, error) {
 // of records to request is 288 (and defaults to that value).
 // https://ambientweather.docs.apiary.io/#reference/0/device-data/query-device-data
 func Historical(key ambient.Key, mac string, limit int64) ([]map[string]any, error) {
+	slog.Info("getting historical weather data", slog.String("mac", mac), slog.Int64("records", limit))
 	now := time.Now().UTC()
 	results, err := ambient.DeviceMac(key, mac, now, limit)
 	if err != nil {
