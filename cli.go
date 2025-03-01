@@ -12,10 +12,10 @@ type Globals struct {
 type CLI struct {
 	Globals
 
-	Serve ServeCmd `cmd:"" help:"Run the webhook server"`
+	Server ServerCmd `cmd:"" help:"Run the webhook server"`
 }
 
-type ServeCmd struct {
+type ServerCmd struct {
 	ApplicationKey string        `required:"true" help:"Ambient Weather API 'application' key"`
 	APIKey         string        `required:"true" help:"Ambient Weather API key"`
 	Device         string        `required:"true" help:"Ambient Weather Device MAC address"`

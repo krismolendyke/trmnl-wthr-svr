@@ -2,7 +2,7 @@
 
 # Run the application locally using 1Password CLI
 run:
-	go run . serve \
+	go run . server \
   --application-key $$(op read "op://Private/AmbientWeather/TRMNL Secrets/Application Key") \
   --api-key $$(op read "op://Private/AmbientWeather/TRMNL Secrets/API Key") \
   --device $$(op read "op://Private/AmbientWeather/Station MAC") \

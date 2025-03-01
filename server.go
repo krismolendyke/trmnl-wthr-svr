@@ -11,7 +11,7 @@ import (
 	"github.com/lrosenman/ambient"
 )
 
-func (c *ServeCmd) Run(ctx *kong.Context) error {
+func (c *ServerCmd) Run(ctx *kong.Context) error {
 	ticker := time.NewTicker(c.Interval)
 	defer ticker.Stop()
 

@@ -15,4 +15,4 @@ COPY --from=builder --chown=nonroot:nonroot /trmnl-wthr-svr /trmnl-wthr-svr
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/trmnl-wthr-svr", "serve"]
+ENTRYPOINT ["/trmnl-wthr-svr", "server"]
