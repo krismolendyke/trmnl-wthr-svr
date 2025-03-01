@@ -1,0 +1,16 @@
+# fly.toml app configuration file generated for trmnl-wthr-svr on 2025-03-01T10:01:32-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'trmnl-wthr-svr'
+primary_region = 'iad'
+
+[[vm]]
+memory = '1gb'
+cpu_kind = 'shared'
+cpus = 1
+max_machines_running = 1
+min_machines_running = 0
+auto_stop_machines = false
+auto_start_machines = true

@@ -28,6 +28,14 @@ docker-run: docker-build
   -e TRMNL_WTHR_SVR_WEBHOOK_URL=$$(op read "op://Private/AmbientWeather/TRMNL Secrets/Webhook URL") \
   trmnl-wthr-svr:latest
 
+# Set secrets on Fly.io using 1Password CLI
+fly-set-secrets:
+	fly secrets set TRMNL_WTHR_SVR_APPLICATION_KEY="$$(op read "op://Private/AmbientWeather/TRMNL Secrets/Application Key")"
+	fly secrets set TRMNL_WTHR_SVR_API_KEY="$$(op read "op://Private/AmbientWeather/TRMNL Secrets/API Key")"
+	fly secrets set TRMNL_WTHR_SVR_DEVICE="$$(op read "op://Private/AmbientWeather/Station MAC")"
+	fly secrets set TRMNL_WTHR_SVR_WEBHOOK_URL="$$(op read "op://Private/AmbientWeather/TRMNL Secrets/Webhook URL")"
+	@echo "Secrets have been set in fly.io"
+
 # Clean up build artifacts
 clean:
 	rm -f trmnl-wthr-svr
