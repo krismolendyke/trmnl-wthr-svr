@@ -1,12 +1,21 @@
-.PHONY: run build docker-build docker-run clean all
+.PHONY: run build docker-build docker-run clean all debug
 
 # Run the application locally using 1Password CLI
 run:
 	go run . server \
-  --application-key $$(op read "op://Private/AmbientWeather/TRMNL Secrets/Application Key") \
-  --api-key $$(op read "op://Private/AmbientWeather/TRMNL Secrets/API Key") \
-  --device $$(op read "op://Private/AmbientWeather/Station MAC") \
-  --webhook-url $$(op read "op://Private/AmbientWeather/TRMNL Secrets/Webhook URL")
+		--application-key $$(op read "op://Private/AmbientWeather/TRMNL Secrets/Application Key") \
+		--api-key $$(op read "op://Private/AmbientWeather/TRMNL Secrets/API Key") \
+		--device $$(op read "op://Private/AmbientWeather/Station MAC") \
+		--webhook-url $$(op read "op://Private/AmbientWeather/TRMNL Secrets/Webhook URL")
+
+# Run the application with debug logging enabled
+debug:
+	go run . server \
+		--debug \
+		--application-key $$(op read "op://Private/AmbientWeather/TRMNL Secrets/Application Key") \
+		--api-key $$(op read "op://Private/AmbientWeather/TRMNL Secrets/API Key") \
+		--device $$(op read "op://Private/AmbientWeather/Station MAC") \
+		--webhook-url $$(op read "op://Private/AmbientWeather/TRMNL Secrets/Webhook URL")
 
 # Default target is run
 all: run
@@ -22,11 +31,11 @@ docker-build:
 # Run the container using 1Password CLI for secrets
 docker-run: docker-build
 	docker run \
-  -e TRMNL_WTHR_SVR_APPLICATION_KEY=$$(op read "op://Private/AmbientWeather/TRMNL Secrets/Application Key") \
-  -e TRMNL_WTHR_SVR_API_KEY=$$(op read "op://Private/AmbientWeather/TRMNL Secrets/API Key") \
-  -e TRMNL_WTHR_SVR_DEVICE=$$(op read "op://Private/AmbientWeather/Station MAC") \
-  -e TRMNL_WTHR_SVR_WEBHOOK_URL=$$(op read "op://Private/AmbientWeather/TRMNL Secrets/Webhook URL") \
-  trmnl-wthr-svr:latest
+		-e TRMNL_WTHR_SVR_APPLICATION_KEY=$$(op read "op://Private/AmbientWeather/TRMNL Secrets/Application Key") \
+		-e TRMNL_WTHR_SVR_API_KEY=$$(op read "op://Private/AmbientWeather/TRMNL Secrets/API Key") \
+		-e TRMNL_WTHR_SVR_DEVICE=$$(op read "op://Private/AmbientWeather/Station MAC") \
+		-e TRMNL_WTHR_SVR_WEBHOOK_URL=$$(op read "op://Private/AmbientWeather/TRMNL Secrets/Webhook URL") \
+		trmnl-wthr-svr:latest
 
 # Set secrets on Fly.io using 1Password CLI
 fly-set-secrets:

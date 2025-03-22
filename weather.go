@@ -105,6 +105,12 @@ func Update(key ambient.Key, mac string, limit int64, webhook *url.URL) error {
 		return fmt.Errorf("error marshaling webhook data: %w", err)
 	}
 
+	// Log the size of the JSON payload
+	payloadSize := len(jsonData)
+	slog.Debug("webhook payload details",
+		slog.Int("size_bytes", payloadSize),
+		slog.String("size_human", fmt.Sprintf("%.2f KB", float64(payloadSize)/1024)))
+
 	// Send the HTTP POST request
 	resp, err := http.Post(webhook.String(), "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
