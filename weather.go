@@ -41,7 +41,17 @@ func Latest(key ambient.Key, mac string) (map[string]any, error) {
 	}
 	for _, r := range results.DeviceRecord {
 		if mac == r.Macaddress {
-			return r.LastDataFields, nil
+			// Filter the response to only include the specified fields
+			filteredData := map[string]any{}
+			fields := []string{"tempf", "feelsLike", "humidity", "dailyrainin", "dateutc"}
+
+			for _, field := range fields {
+				if value, exists := r.LastDataFields[field]; exists {
+					filteredData[field] = value
+				}
+			}
+
+			return filteredData, nil
 		}
 	}
 	return nil, fmt.Errorf("no device data found for device MAC: %s", mac)
@@ -63,7 +73,22 @@ func Historical(key ambient.Key, mac string, limit int64) ([]map[string]any, err
 		return nil, fmt.Errorf("unexpected response code: %d, json: %s", results.HTTPResponseCode, results.JSONResponse)
 	}
 	slog.Debug("historical", slog.Any("records", results))
-	return results.RecordFields, nil
+
+	// Filter each record to only include tempf and dateutc
+	filteredRecords := make([]map[string]any, 0, len(results.RecordFields))
+	fields := []string{"tempf", "dateutc"}
+
+	for _, record := range results.RecordFields {
+		filteredRecord := map[string]any{}
+		for _, field := range fields {
+			if value, exists := record[field]; exists {
+				filteredRecord[field] = value
+			}
+		}
+		filteredRecords = append(filteredRecords, filteredRecord)
+	}
+
+	return filteredRecords, nil
 }
 
 // Data assembles latest and historical data into something that can be sent to the TRMNL webhook URL.
