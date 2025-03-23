@@ -28,8 +28,9 @@ func (c *ServerCmd) Run(ctx *kong.Context) error {
 		if isRateLimited(err) {
 			slog.Warn("rate limited on initial request, applying backoff", slog.Duration("backoff", c.Interval))
 		} else {
-			return err
+			slog.Error("failed on initial update", slog.String("err", err.Error()))
 		}
+		// Don't return error, continue running
 	}
 
 	for {
