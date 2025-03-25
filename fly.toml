@@ -7,7 +7,8 @@ app = 'trmnl-wthr-svr'
 primary_region = 'iad'
 
 [[vm]]
-memory = '1gb'
+size = "shared-cpu-1x"
+memory = '256mb'
 cpu_kind = 'shared'
 cpus = 1
 max_machines_running = 1
